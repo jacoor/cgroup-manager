@@ -1,11 +1,13 @@
 # Dev notes to clean up.
 
 1. Instalation on Cent Os.
+2. Running python script (or any script) as root, safely: 
+https://askubuntu.com/questions/154307/run-a-script-from-django-view-as-root-without-asking-for-password
 
 
 # Cgroup Management
 
-This is a simple API to manage cgroups in Cent Os.
+This is a simple API to manage cgroups in Cent Os. It's a sample project.
 
 ## Getting Started
 
