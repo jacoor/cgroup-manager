@@ -13,13 +13,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import include, path
-from rest_framework_swagger.views import get_swagger_view
-schema_view = get_swagger_view(title='Cgroups Manager API')
+from cgroup_manager.cgroups.api import CGroupProcessListAPIView
+from django.urls import path
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", schema_view),  # FIXME: doesn't work right now.s
-    path("/", include("cgroup_manager.cgroups.urls")),
+    path("cgroup/<cgroup_name>/pids", CGroupProcessListAPIView.as_view(), name="cgroup-process-list"),
 ]
