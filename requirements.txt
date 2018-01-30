@@ -1,8 +1,9 @@
 # test
 pytest==3.3.2
 ipython==6.2.1
+mock==2.0.0
 
 # runtime
 Django==2.0.1
-pytz==2017.3
+psutil==5.4.3
 djangorestframework==3.7.7
