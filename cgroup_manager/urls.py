@@ -20,6 +20,6 @@ schema_view = get_swagger_view(title='Cgroups Manager API')
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", schema_view),  # FIXME: doesn't work right now.s
-    path("/", include("cgroup_manager.cgroups.urls")),
+    path("api/", schema_view),
+    path("", include("cgroup_manager.cgroups.urls")),
 ]

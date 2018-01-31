@@ -17,6 +17,43 @@ from urllib.parse import quote
 class APITestCase(APITestCase):
 
     def test_creating_new_cgroup(self):
+        """
+        Precise test plan:
+
+        1. try to create cgroup in improper hierarchy - error, 400.
+            a) error handling: mkdir -p will not work if the system is read only - and this is true
+            if you try to create directory in /sys/fs/cgroup
+        2. Create in proper hierarchy
+            201 Created
+        """
+        url = reverse("cgroups", args=["fake-hierarchy"])
+
+        response = self.client.post(url, {})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], {"cgroup_name is required"})
+
+        with mock.patch("check_call") as m:
+            m.side_effect = CalledProcessError(
+                'Command \'["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"]\' '
+                'returned non-zero exit status 1')
+            response = self.client.post(url, {"cgroup_name": "some-cgroup"})
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.data["detail"], "Not existing hierarchy")
+            m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
+
+            m.reset_mock()
+            response = self.client.post(url, {"cgroup_name": "some-cgroup/nested_cgroup"})
+            self.assertEqual(response.status_code, 400)
+            self.assertEqual(response.data, "Not existing hierarchy")
+            m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
+
+            m.reset_mock()
+            m.side_effect = None
+            m.return_value = 0
+            response = self.client.post(url, {"cgroup_name": "some-cgroup"})
+            self.assertEqual(response.status_code, 201)
+            m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
+
         self.assertEqual(0, 1)
 
     def test_placing_pid_in_cgroup(self):
