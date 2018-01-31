@@ -16,7 +16,6 @@ class CGroupProcessListAPIView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_name"]), "tasks")
-        print(path)
         if not os.path.exists(path):
             raise NotFound()
 

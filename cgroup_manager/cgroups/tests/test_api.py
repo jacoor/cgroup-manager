@@ -23,17 +23,18 @@ class APITestCase(APITestCase):
         self.assertEqual(0, 1)
 
     def test_listing_pids_for_cgroup(self):
-        """
-        Precise tests plan:
-
-        1. test not existing cgroup/hierarchy - exceptions? 404.
-        2. test existing
-        """
         url = reverse("cgroup-process-list", args=["some-fake-cgroup"])
         with mock.patch("os.path.exists") as m:
             m.return_value = False
             response = self.client.get(url)
             self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.data["detail"], "Not found.")  # to make sure it's DRF response
+
+            m.reset_mock()
+            url = reverse("cgroup-process-list", args=[quote("real-group/deeper", safe="")])
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.data["detail"], "Not found.")  # to make sure it's DRF response
 
         with mock.patch("os.path.exists") as m:
             m.return_value = True
