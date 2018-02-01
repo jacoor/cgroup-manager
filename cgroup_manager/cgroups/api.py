@@ -5,7 +5,8 @@ from rest_framework.exceptions import NotFound, ValidationError
 from urllib.parse import unquote
 from cgroup_manager.cgroups.serializers import CgroupCreateSerializer
 from subprocess import check_call, CalledProcessError
-from rest_framework.status import HTTP_201_CREATED
+from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
+from cgroup_manager.cgroups.serializers import CgroupProcessAddSerializer
 
 cgroup_path_prefix = "/sys/fs/cgroup/"
 
@@ -14,7 +15,6 @@ class CGroupProcessListAddAPIView(GenericAPIView):
     """Lists tasks pids by cgroup. Raises 404 if cgroup does not exist. cgroup_path_fragment should be urlencoded."""
 
     queryset = None
-    serializer_class = None
 
     def get(self, request, *args, **kwargs):
         path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_path_fragment"]), "tasks")
@@ -23,6 +23,25 @@ class CGroupProcessListAddAPIView(GenericAPIView):
 
         with open(path) as f:
             return Response(f.read().splitlines())
+
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        pid = serializer.validated_data["pid"]
+        path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_path_fragment"]), "tasks")
+        try:
+            check_call(["echo", pid, ">", path])
+        except CalledProcessError:
+            # on purpose. The error should not show command used as this might be a security risk
+            raise ValidationError(
+                detail={"errors": ["Adding process to cgroup failed. Please check hierarchy and cgroup name."]})
+
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def get_serializer_class(self):
+        # otherwise swagger complains
+        if self.request.method == "PUT":
+            return CgroupProcessAddSerializer
 
 
 class CgroupCreateAPIView(GenericAPIView):
