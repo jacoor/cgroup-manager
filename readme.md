@@ -20,13 +20,14 @@ These instructions will get you a copy of the project up and running on your loc
 * nginx
 * supervisord
 
-```
-Give examples
-```
-
 ### Installing
 
 A step by step series of examples that tell you have to get a development env running
+
+* update sudoers with the following lines for your user - this is necessary as your user needs to be able to run some of root user commands without entering password.
+```
+FIXME!
+```
 
 Say what the step will be
 
@@ -42,9 +43,31 @@ until finished
 
 End with an example of getting some data out of the system or using it for a little demo
 
+### Swagger documentation
+
+Check url:
+
+```
+    http://[your domain]/api
+```
+
 ## Running the tests
 
-Explain how to run the automated tests for this system
+There are two ways to run the tests. Both should be run in virtualenv, from the main project directory.
+
+Django builtin mechanism:
+
+
+```
+    ./manage.py test .
+```
+
+
+or pytest:
+
+```
+    pytest
+```
 
 ### Break down into end to end tests
 
