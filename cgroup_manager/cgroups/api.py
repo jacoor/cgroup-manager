@@ -12,12 +12,13 @@ cgroup_path_prefix = "/sys/fs/cgroup/"
 
 
 class CGroupProcessListAddAPIView(GenericAPIView):
-    """Lists tasks pids by cgroup. Raises 404 if cgroup does not exist. cgroup_path_fragment should be urlencoded."""
+    """Lists tasks pids by cgroup. Raises 404 if cgroup does not exist. 'cgroup_path_fragment' should be urlencoded."""
 
     queryset = None
 
     def get(self, request, *args, **kwargs):
-        path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_path_fragment"]), "tasks")
+        path = os.path.join(
+            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
         if not os.path.exists(path):
             raise NotFound()
 
@@ -25,10 +26,12 @@ class CGroupProcessListAddAPIView(GenericAPIView):
             return Response(f.read().splitlines())
 
     def put(self, request, *args, **kwargs):
+        """Adds task to given cgroup. 'cgroup_path_fragment' should be urlencoded."""
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         pid = serializer.validated_data["pid"]
-        path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_path_fragment"]), "tasks")
+        path = os.path.join(
+            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
         try:
             check_call(["echo", pid, ">", path])
         except CalledProcessError:

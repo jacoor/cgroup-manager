@@ -7,12 +7,6 @@ from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 
 
-"""
-    Test plan:
-    2. API to place process in cgroup: PUT -> edit
-"""
-
-
 class APITestCase(APITestCase):
 
     def test_creating_new_cgroup(self):
@@ -53,7 +47,7 @@ class APITestCase(APITestCase):
     def test_placing_pid_in_cgroup(self):
         # sudo echo <task-process-id> >/cgroup/memory/group1/tasks
         # put and patch. Shold basically do the same in this situation.
-        url = reverse("cgroup-processes", args=[quote("fake-hierarchy/some-cgroup", safe="")])
+        url = reverse("cgroup-processes", args=["fake-hierarchy", quote("some-cgroup/nested", safe="")])
         with mock.patch("cgroup_manager.cgroups.serializers.check_if_process_exists") as m:
             # not existing process
             m.return_value = False
@@ -66,7 +60,7 @@ class APITestCase(APITestCase):
             m.return_value = True
             with mock.patch("cgroup_manager.cgroups.api.check_call") as echo_mock:
                 echo_mock.side_effect = CalledProcessError(
-                    returncode=1, cmd=["echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/tasks"])
+                    returncode=1, cmd=["echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
                 response = self.client.put(url, data={"pid": 11})
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
@@ -74,7 +68,7 @@ class APITestCase(APITestCase):
                     'Adding process to cgroup failed. Please check hierarchy and cgroup name.'
                 )
                 echo_mock.assert_called_once_with(
-                    ["echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/tasks"])
+                    ["echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
 
                 # fail, pid out of range
                 echo_mock.reset_mock()
@@ -83,11 +77,13 @@ class APITestCase(APITestCase):
                 response = self.client.put(url, data={"pid": 0})
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(response.data["pid"], ['Ensure this value is greater than or equal to 1.'])
+                echo_mock.assert_not_called()
 
                 echo_mock.reset_mock()
                 response = self.client.put(url, data={"pid": 32769})
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(response.data["pid"], ['Ensure this value is less than or equal to 32768.'])
+                echo_mock.assert_not_called()
 
                 # success
                 echo_mock.reset_mock()
@@ -96,31 +92,34 @@ class APITestCase(APITestCase):
                 self.assertEqual(response.data["pid"], 11)
 
     def test_listing_pids_for_cgroup(self):
-        url = reverse("cgroup-processes", args=["some-fake-cgroup"])
+        url = reverse("cgroup-processes", args=["fake-hierarchy", "some-fake-cgroup"])
         with mock.patch("os.path.exists") as m:
             m.return_value = False
+
             response = self.client.get(url)
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.data["detail"], "Not found.")  # to make sure it's DRF response
+            m.assert_called_once_with('/sys/fs/cgroup/fake-hierarchy/some-fake-cgroup/tasks')
 
             m.reset_mock()
-            url = reverse("cgroup-processes", args=[quote("real-group/deeper", safe="")])
+            url = reverse("cgroup-processes", args=["fake-hierarchy", quote("real-group/deeper", safe="")])
             response = self.client.get(url)
             self.assertEqual(response.status_code, 404)
             self.assertEqual(response.data["detail"], "Not found.")  # to make sure it's DRF response
+            m.assert_called_once_with('/sys/fs/cgroup/fake-hierarchy/real-group/deeper/tasks')
 
         with mock.patch("os.path.exists") as m:
             m.return_value = True
             with mock.patch("cgroup_manager.cgroups.api.open",
                             mock.mock_open(read_data=pids_list_file_content_mock)) as file_mock:
-                url = reverse("cgroup-processes", args=["real-group"])
+                url = reverse("cgroup-processes", args=["fake-hierarchy", "real-group"])
                 response = self.client.get(url)
                 self.assertEqual(response.data, pids_list)
-                file_mock.assert_called_once_with("/sys/fs/cgroup/real-group/tasks")
+                file_mock.assert_called_once_with("/sys/fs/cgroup/fake-hierarchy/real-group/tasks")
 
                 # check nested deeper
                 file_mock.reset_mock()
-                url = reverse("cgroup-processes", args=[quote("real-group/deeper", safe="")])
+                url = reverse("cgroup-processes", args=["fake-hierarchy", quote("real-group/deeper", safe="")])
                 response = self.client.get(url)
                 self.assertEqual(response.data, pids_list)
-                file_mock.assert_called_once_with("/sys/fs/cgroup/real-group/deeper/tasks")
+                file_mock.assert_called_once_with("/sys/fs/cgroup/fake-hierarchy/real-group/deeper/tasks")
