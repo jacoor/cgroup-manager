@@ -1,6 +1,5 @@
-from django.test import TestCase
-
 from cgroup_manager.cgroups.utils import check_if_process_exists
+from django.test import TestCase
 
 
 class TestUtils(TestCase):

@@ -1,12 +1,12 @@
+import os
+from subprocess import CalledProcessError, check_call
+from urllib.parse import unquote
+
+from cgroup_manager.cgroups.serializers import CgroupCreateSerializer, CgroupProcessAddSerializer
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-import os
-from rest_framework.exceptions import NotFound, ValidationError
-from urllib.parse import unquote
-from cgroup_manager.cgroups.serializers import CgroupCreateSerializer
-from subprocess import check_call, CalledProcessError
-from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK
-from cgroup_manager.cgroups.serializers import CgroupProcessAddSerializer
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
 
 cgroup_path_prefix = "/sys/fs/cgroup/"
 

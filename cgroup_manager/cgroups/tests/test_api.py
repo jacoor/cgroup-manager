@@ -1,9 +1,11 @@
-from rest_framework.test import APITestCase
-from cgroup_manager.cgroups.tests.mock_data import pids_list, pids_list_file_content_mock
-from rest_framework.reverse import reverse
-import mock
 from subprocess import CalledProcessError
 from urllib.parse import quote
+
+import mock
+from cgroup_manager.cgroups.tests.mock_data import pids_list, pids_list_file_content_mock
+from rest_framework.reverse import reverse
+from rest_framework.test import APITestCase
+
 
 """
     Test plan:

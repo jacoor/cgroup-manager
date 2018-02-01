@@ -1,5 +1,5 @@
-from rest_framework import serializers
 from cgroup_manager.cgroups.utils import check_if_process_exists
+from rest_framework import serializers
 
 
 class CgroupCreateSerializer(serializers.Serializer):
