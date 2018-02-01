@@ -1,7 +1,8 @@
-# test
-pytest==3.3.2
+# dev + test
 ipython==6.2.1
 mock==2.0.0
+isort==4.3.0
+pytest-django==3.1.2
 
 # runtime
 Django==2.0.1
