@@ -10,14 +10,14 @@ from rest_framework.status import HTTP_201_CREATED
 cgroup_path_prefix = "/sys/fs/cgroup/"
 
 
-class CGroupProcessListAPIView(GenericAPIView):
-    """Lists tasks pids by cgroup. Raises 404 if cgroup does not exist. Cgroup_name should be urlencoded."""
+class CGroupProcessListAddAPIView(GenericAPIView):
+    """Lists tasks pids by cgroup. Raises 404 if cgroup does not exist. cgroup_path_fragment should be urlencoded."""
 
     queryset = None
     serializer_class = None
 
     def get(self, request, *args, **kwargs):
-        path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_name"]), "tasks")
+        path = os.path.join(cgroup_path_prefix, unquote(kwargs["cgroup_path_fragment"]), "tasks")
         if not os.path.exists(path):
             raise NotFound()
 
@@ -35,8 +35,8 @@ class CgroupCreateAPIView(GenericAPIView):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         hierarchy = unquote(kwargs["hierarchy"])
-        cgroup_name = unquote(serializer.validated_data['cgroup_name'])
-        path = os.path.join(cgroup_path_prefix, hierarchy, cgroup_name)
+        cgroup_path_fragment = unquote(serializer.validated_data['cgroup_path_fragment'])
+        path = os.path.join(cgroup_path_prefix, hierarchy, cgroup_path_fragment)
         try:
             check_call(["mkdir", "-p", path])
         except CalledProcessError:

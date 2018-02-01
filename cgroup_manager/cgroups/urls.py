@@ -13,10 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from cgroup_manager.cgroups.api import CGroupProcessListAPIView, CgroupCreateAPIView
+from cgroup_manager.cgroups.api import CGroupProcessListAddAPIView, CgroupCreateAPIView
 from django.urls import path
 
 urlpatterns = [
-    path("cgroups/<cgroup_name>/pids", CGroupProcessListAPIView.as_view(), name="cgroup-process-list"),
+    path("cgroups/<cgroup_path_fragment>/pids", CGroupProcessListAddAPIView.as_view(), name="cgroup-processes"),
     path("cgroups/<hierarchy>", CgroupCreateAPIView.as_view(), name="cgroups"),
 ]
