@@ -4,57 +4,49 @@ from rest_framework.reverse import reverse
 import mock
 from subprocess import CalledProcessError
 from urllib.parse import quote
-# Create your tests here.
 
 """
     Test plan:
-    1. API to create a new CGroup: POST -> create
     2. API to place process in cgroup: PUT -> edit
-    3. API to list PID's in given cgroup: GET -> ListAPIView
 """
 
 
 class APITestCase(APITestCase):
 
     def test_creating_new_cgroup(self):
-        """
-        Precise test plan:
-
-        1. try to create cgroup in improper hierarchy - error, 400.
-            a) error handling: mkdir -p will not work if the system is read only - and this is true
-            if you try to create directory in /sys/fs/cgroup
-        2. Create in proper hierarchy
-            201 Created
-        """
         url = reverse("cgroups", args=["fake-hierarchy"])
 
         response = self.client.post(url, {})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["detail"], {"cgroup_name is required"})
+        self.assertEqual(response.data, {'cgroup_name': ['This field is required.']})
 
-        with mock.patch("check_call") as m:
+        with mock.patch("cgroup_manager.cgroups.api.check_call") as m:
             m.side_effect = CalledProcessError(
-                'Command \'["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"]\' '
-                'returned non-zero exit status 1')
+                returncode=1, cmd=["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
             response = self.client.post(url, {"cgroup_name": "some-cgroup"})
             self.assertEqual(response.status_code, 400)
-            self.assertEqual(response.data["detail"], "Not existing hierarchy")
+            self.assertEqual(
+                response.data["errors"][0],
+                'Creating cgroup returned an error. Please check hierarchy and cgroup name.'
+            )
             m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
 
             m.reset_mock()
             response = self.client.post(url, {"cgroup_name": "some-cgroup/nested_cgroup"})
             self.assertEqual(response.status_code, 400)
-            self.assertEqual(response.data, "Not existing hierarchy")
-            m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
+            self.assertEqual(
+                response.data["errors"][0],
+                'Creating cgroup returned an error. Please check hierarchy and cgroup name.'
+            )
+            m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested_cgroup"])
 
+            # success
             m.reset_mock()
             m.side_effect = None
             m.return_value = 0
             response = self.client.post(url, {"cgroup_name": "some-cgroup"})
-            self.assertEqual(response.status_code, 201)
             m.assert_called_once_with(["mkdir", "-p", "/sys/fs/cgroup/fake-hierarchy/some-cgroup"])
-
-        self.assertEqual(0, 1)
+            self.assertEqual(response.status_code, 201)
 
     def test_placing_pid_in_cgroup(self):
         self.assertEqual(0, 1)
