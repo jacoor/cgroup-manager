@@ -62,7 +62,7 @@ class APITestCase(APITestCase):
             with mock.patch("cgroup_manager.cgroups.api.check_call") as echo_mock:
                 echo_mock.side_effect = CalledProcessError(
                     returncode=1,
-                    cmd=["sudo", "echo", "11", ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
+                    cmd=["sudo", "bash", "-c", "echo 11 >> /sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
                 response = self.client.put(url, data={"pid": "11"})
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
@@ -70,7 +70,7 @@ class APITestCase(APITestCase):
                     'Adding process to cgroup failed. Please check hierarchy and cgroup name.'
                 )
                 echo_mock.assert_called_once_with(
-                    ["sudo", "echo", "11", ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
+                    ["sudo", "bash", "-c", "echo 11 >> /sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
 
                 # fail, pid out of range
                 echo_mock.reset_mock()

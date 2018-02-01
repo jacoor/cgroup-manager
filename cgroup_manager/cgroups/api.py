@@ -33,7 +33,7 @@ class CGroupProcessListAddAPIView(GenericAPIView):
         path = os.path.join(
             cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
         try:
-            check_call(["sudo", "echo", pid, ">", path])
+            check_call(["sudo", "bash", "-c", f"echo {pid} >> {path}"])
         except CalledProcessError:
             # on purpose. The error should not show command used as this might be a security risk
             raise ValidationError(
