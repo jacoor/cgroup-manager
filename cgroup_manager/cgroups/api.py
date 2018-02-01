@@ -29,7 +29,7 @@ class CGroupProcessListAddAPIView(GenericAPIView):
         """Adds task to given cgroup. 'cgroup_path_fragment' should be urlencoded."""
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        pid = serializer.validated_data["pid"]
+        pid = str(serializer.validated_data["pid"])  # otherwise check_call fails
         path = os.path.join(
             cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
         try:

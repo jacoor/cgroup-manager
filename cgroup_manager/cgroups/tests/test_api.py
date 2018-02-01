@@ -52,7 +52,7 @@ class APITestCase(APITestCase):
         with mock.patch("cgroup_manager.cgroups.serializers.check_if_process_exists") as m:
             # not existing process
             m.return_value = False
-            response = self.client.put(url, data={"pid": 11})
+            response = self.client.put(url, data={"pid": "11"})
             self.assertEqual(response.status_code, 400)
             self.assertEqual(response.data, {'pid': ['Process does not exist.']})
 
@@ -62,15 +62,15 @@ class APITestCase(APITestCase):
             with mock.patch("cgroup_manager.cgroups.api.check_call") as echo_mock:
                 echo_mock.side_effect = CalledProcessError(
                     returncode=1,
-                    cmd=["sudo", "echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
-                response = self.client.put(url, data={"pid": 11})
+                    cmd=["sudo", "echo", "11", ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
+                response = self.client.put(url, data={"pid": "11"})
                 self.assertEqual(response.status_code, 400)
                 self.assertEqual(
                     response.data["errors"][0],
                     'Adding process to cgroup failed. Please check hierarchy and cgroup name.'
                 )
                 echo_mock.assert_called_once_with(
-                    ["sudo", "echo", 11, ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
+                    ["sudo", "echo", "11", ">", "/sys/fs/cgroup/fake-hierarchy/some-cgroup/nested/tasks"])
 
                 # fail, pid out of range
                 echo_mock.reset_mock()
@@ -89,7 +89,7 @@ class APITestCase(APITestCase):
 
                 # success
                 echo_mock.reset_mock()
-                response = self.client.put(url, data={"pid": 11})
+                response = self.client.put(url, data={"pid": "11"})
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.data["pid"], 11)
 
