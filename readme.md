@@ -2,15 +2,32 @@
 This is a simple API to manage cgroups in Cent Os. It's a sample project.
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
 ### Prerequisites
+
+#### Development only
+* git
+
+#### Development and production
 * python 3.6
 * virtualenv
-    For the both above you may use: https://janikarhunen.fi/how-to-install-python-3-6-1-on-centos-7.html
+* gcc - missing on AWS CentOs images
+
+For the both above you may use: https://janikarhunen.fi/how-to-install-python-3-6-1-on-centos-7.html
+
+####Production only
 * nginx
 * supervisord
 
 ### Installing
 A step by step series of examples that tell you have to get a development environment running.
+
+Clone the repository to your desired directory:
+
+```
+git clone git@github.com:jacoor/cgroup-manager.git
+```
+
 Install requirements:
 ```
     pip install -r requirements.txt
@@ -51,9 +68,47 @@ or pytest:
     pytest
 ```
 ## Deployment
-FIXME
-Add additional notes about how to deploy this on a live system
+Install tools mentioned in "Prerequisites" section.
+
+Clone the repository into your desired location using HTTPS cloning:
+
+```
+    git clone https://github.com/jacoor/cgroup-manager.git
+```
+
+Update crontab
+
+```
+    crontab [path_to_project]/config/crontab
+```
+
+Migrate database (uses sqlite)
+```
+    /home/centos/workspace/cgroup-manager/venv/bin/python manage.py migrate
+```
+
+Because of project simplicity static files are already in the repository.
+
+Add commands to supervisord and nginx (run as root)
+
+```
+    # cd /etc/nginx/sites-enabled && ln -sf /home/cgroup_manager/cgroup_manager/config/production/nginx.conf cgroup_manager.conf
+    # cd /etc/supervisor/conf.d/ && ln -sf /home/cgroup_manager/cgroup_manager/config/production/supervisord.conf cgroup_manager.conf' % params,
+             user='root')
+    # /etc/init.d/nginx reload
+    # supervisorctl reread && supervisorctl update
+```
+
+Go to:
+
+```
+    http://ec2-18-196-5-59.eu-central-1.compute.amazonaws.com/api
+```
+
+to verify project working.
+
 ## Possible improvements
+
 * Creating Cgroup - return an error when cgroup already exists. Right now it uses `mkdir -p` to create directory structure, so it does not complain if directory is already there.
 
 ## Contributing

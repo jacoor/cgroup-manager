@@ -1,0 +1,5 @@
+PYTHON_DIR = '/home/centos/workspace/cgroup-manager/venv/bin/python'
+DIR = '/home/centos/workspace/cgroup-manager/'
+
+# m h  dom mon dow   command
+0 5 * * *   cd $DIR && $PYTHON_DIR manage.py clearsessions
