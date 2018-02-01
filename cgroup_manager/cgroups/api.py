@@ -33,7 +33,7 @@ class CGroupProcessListAddAPIView(GenericAPIView):
         path = os.path.join(
             cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
         try:
-            check_call(["echo", pid, ">", path])
+            check_call(["sudo", "echo", pid, ">", path])
         except CalledProcessError:
             # on purpose. The error should not show command used as this might be a security risk
             raise ValidationError(
@@ -60,7 +60,7 @@ class CgroupCreateAPIView(GenericAPIView):
         cgroup_path_fragment = unquote(serializer.validated_data['cgroup_path_fragment'])
         path = os.path.join(cgroup_path_prefix, hierarchy, cgroup_path_fragment)
         try:
-            check_call(["mkdir", "-p", path])
+            check_call(["sudo", "mkdir", "-p", path])
         except CalledProcessError:
             # on purpose. The error should not show command used as this might be a security risk
             raise ValidationError(
