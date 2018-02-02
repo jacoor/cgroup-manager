@@ -26,9 +26,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'ityvj0j5vll_@a84p^zju&%uc#o2#aen%+zm2^kfk#8778eov8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "ec2-18-196-5-59.eu-central-1.compute.amazonaws.com",
+    "127.0.0.1"
+]
 
 
 # Application definition
@@ -72,7 +75,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cgroup_manager.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 
 # Database
@@ -122,14 +125,23 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
-STATIC_URL = '/static/'
+MEDIA_ROOT = location(os.path.join("site_media", "media"))
 
+# URL that handles the media served from MEDIA_ROOT. Make sure to use a
+# trailing slash.
+# Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
+MEDIA_URL = "/media/"
+
+# Absolute path to the directory static files should be collected to.
+# Don"t put anything in this directory yourself; store your static files
+# in apps" "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = location(os.path.join("site_media", "static"))
 
-# Additional directories which hold static files
-STATICFILES_DIRS = [
-    location("static"),
-]
+
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = "/static/"
 
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",

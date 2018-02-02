@@ -102,3 +102,4 @@ ENV/
 
 code_samples.py
 *.sqlite3
+/static/*
