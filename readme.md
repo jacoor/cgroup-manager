@@ -1,11 +1,12 @@
 # Cgroup Management
 This is a simple API to manage cgroups in Cent Os. It's a sample project.
+
 ## Getting Started
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
-#### Development only
+#### Development
 * git
 
 #### Development and production
@@ -68,7 +69,7 @@ or pytest:
     pytest
 ```
 ## Deployment
-Install tools mentioned in "Prerequisites" section.
+Install tools mentioned in "Prerequisites" section and activate virtualenv.
 
 Clone the repository into your desired location using HTTPS cloning:
 
@@ -82,21 +83,71 @@ Update crontab
     crontab [path_to_project]/config/crontab
 ```
 
+Collect static files
+
+```
+    ./manage.py collectstatic
+```
+
 Migrate database (uses sqlite)
+
 ```
     /home/centos/workspace/cgroup-manager/venv/bin/python manage.py migrate
 ```
 
 Because of project simplicity static files are already in the repository.
 
-Add commands to supervisord and nginx (run as root)
+Add nginx to your user group and modify file access rights.
 
 ```
-    # cd /etc/nginx/sites-enabled && ln -sf /home/cgroup_manager/cgroup_manager/config/production/nginx.conf cgroup_manager.conf
-    # cd /etc/supervisor/conf.d/ && ln -sf /home/cgroup_manager/cgroup_manager/config/production/supervisord.conf cgroup_manager.conf' % params,
-             user='root')
-    # /etc/init.d/nginx reload
-    # supervisorctl reread && supervisorctl update
+    sudo usermod -a -G centos nginx
+    chmod 710 /home/centos
+```
+
+Allow nginx to run in SELinux permissive mode (https://www.getpagespeed.com/server-setup/nginx/nginx-selinux-configuration)
+
+```
+    sudo semanage permissive -a httpd_t
+```
+
+Add commands to supervisord and nginx
+
+```
+    sudo cd /etc/nginx/conf.d && ln -sf /home/centos/workspace/cgroup-manager/config/production/nginx.conf cgroup_manager.conf
+    sudo cd /etc/supervisord.d/ && ln -sf /home/centos/workspace/cgroup-manager/config/production/supervisord.conf cgroup_manager.ini
+    sudo service supervisord start && supervisorctl reread && supervisorctl update
+```
+
+Starting nginx requires SELinux security context change:
+
+```
+    sudo chcon -v --type=httpd_config_t /etc/nginx/conf.d/cgroup_manager.conf
+    sudo systemctl start nginx
+```
+
+Allow nginx to use network:
+
+```
+    sudo setsebool -P httpd_can_network_connect 1
+```
+
+Enable nginx and supervisor to start on boot
+
+```
+    sudo systemctl enable supervisorctl
+    sudo systemctl enable nginx
+```
+
+The project in the current setup will not manage real cgroups because of insuficient privileges. To allow the project to work with real cgroups it needs root user access. Please modify your 'sudoers' file with the following command:
+
+```
+    sudo visudo
+```
+
+and add the following at the end of file:
+
+```
+    centos ALL=(ALL)       NOPASSWD: /usr/bin/bash, /usr/bin/mkdir
 ```
 
 Go to:
@@ -113,6 +164,7 @@ to verify project working.
 
 ## Contributing
 Pull requests welcome.
+
 ## Authors
 * **Jacek Ostanski** - *Initial work* - [github](https://github.com/jacoor)
 
