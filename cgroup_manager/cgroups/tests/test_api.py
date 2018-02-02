@@ -48,6 +48,9 @@ class APITestCase(APITestCase):
     def test_placing_pid_in_cgroup(self):
         # sudo echo <task-process-id> >/cgroup/memory/group1/tasks
         # put and patch. Shold basically do the same in this situation.
+
+        # edge case - there is no "cgroup_path_fragment"
+        short_url = reverse("cgroup-processes", args=["fake-hierarchy"])
         url = reverse("cgroup-processes", args=["fake-hierarchy", quote("some-cgroup/nested", safe="")])
         with mock.patch("cgroup_manager.cgroups.serializers.check_if_process_exists") as m:
             # not existing process
@@ -93,7 +96,15 @@ class APITestCase(APITestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.data["pid"], 11)
 
+                # success
+                echo_mock.reset_mock()
+                response = self.client.put(short_url, data={"pid": "11"})
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.data["pid"], 11)
+
     def test_listing_pids_for_cgroup(self):
+        # edge case - there is no "cgroup_path_fragment"
+        short_url = reverse("cgroup-processes", args=["fake-hierarchy"])
         url = reverse("cgroup-processes", args=["fake-hierarchy", "some-fake-cgroup"])
         with mock.patch("os.path.exists") as m:
             m.return_value = False
@@ -125,3 +136,9 @@ class APITestCase(APITestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.data, pids_list)
                 file_mock.assert_called_once_with("/sys/fs/cgroup/fake-hierarchy/real-group/deeper/tasks")
+
+                # check only hierarchy
+                file_mock.reset_mock()
+                response = self.client.get(short_url)
+                self.assertEqual(response.data, pids_list)
+                file_mock.assert_called_once_with("/sys/fs/cgroup/fake-hierarchy/tasks")

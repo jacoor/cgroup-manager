@@ -17,6 +17,8 @@ from cgroup_manager.cgroups.api import CgroupCreateAPIView, CGroupProcessListAdd
 from django.urls import path
 
 urlpatterns = [
+    path("cgroups/<hierarchy>/pids",
+         CGroupProcessListAddAPIView.as_view(), name="cgroup-processes"),
     path("cgroups/<hierarchy>/<cgroup_path_fragment>/pids",
          CGroupProcessListAddAPIView.as_view(), name="cgroup-processes"),
     path("cgroups/<hierarchy>", CgroupCreateAPIView.as_view(), name="cgroups"),

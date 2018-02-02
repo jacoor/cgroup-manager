@@ -18,7 +18,7 @@ class CGroupProcessListAddAPIView(GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         path = os.path.join(
-            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
+            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs.get("cgroup_path_fragment", "")), "tasks")
         if not os.path.exists(path):
             raise NotFound()
 
@@ -31,7 +31,7 @@ class CGroupProcessListAddAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         pid = str(serializer.validated_data["pid"])  # otherwise check_call fails
         path = os.path.join(
-            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs["cgroup_path_fragment"]), "tasks")
+            cgroup_path_prefix, unquote(kwargs["hierarchy"]), unquote(kwargs.get("cgroup_path_fragment", "")), "tasks")
         try:
             check_call(["sudo", "bash", "-c", f"echo {pid} >> {path}"])
         except CalledProcessError:
