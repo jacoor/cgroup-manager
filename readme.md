@@ -16,7 +16,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 For the both above you may use: https://janikarhunen.fi/how-to-install-python-3-6-1-on-centos-7.html
 
-####Production only
+#### Production only
 * nginx
 * supervisord
 
